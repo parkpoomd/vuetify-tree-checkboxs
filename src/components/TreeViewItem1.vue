@@ -61,7 +61,7 @@ export default {
 
   data() {
     return {
-      showChildren: false,
+      showChildren: true,
       isNodeCheck: false,
     };
   },

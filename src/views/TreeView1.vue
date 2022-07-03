@@ -210,6 +210,32 @@ export default {
         }
         return employee;
       });
+
+      const isOrgChecked = _.every(
+        this.employees.filter((emp) => emp.nodeId === employee.nodeId),
+        ["checked", isChecked]
+      );
+
+      if (isOrgChecked) {
+        this.organizations.forEach((org) => {
+          this.setOrganizationEmployeeRecursive(
+            org,
+            employee.nodeId,
+            isChecked
+          );
+        });
+      }
+    },
+
+    setOrganizationEmployeeRecursive(node, id, isChecked) {
+      if (node.id === id) {
+        node.checked = isChecked;
+      }
+      if (node.children && node.children.length) {
+        node.children.forEach((children) => {
+          this.setOrganizationEmployeeRecursive(children, id, isChecked);
+        });
+      }
     },
   },
 };
