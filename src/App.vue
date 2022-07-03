@@ -1,16 +1,11 @@
 <template>
   <v-app>
     <v-app-bar app color="primary" dark>
-      <div class="d-flex align-center">
-        <v-img
-          alt="Vuetify Logo"
-          class="shrink mr-2"
-          contain
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-logo-dark.png"
-          transition="scale-transition"
-          width="40"
-        />
-      </div>
+      <v-tabs centered>
+        <v-tab to="/">Tree View 1</v-tab>
+        <v-tab to="/tree-view-2">Tree View 2</v-tab>
+        <v-tab to="/tree-view-3">Tree View 3</v-tab>
+      </v-tabs>
     </v-app-bar>
 
     <v-main>
