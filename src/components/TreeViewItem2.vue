@@ -25,7 +25,8 @@
         <v-checkbox
           class="mt-2"
           :label="node.label"
-          :input-value="node.checked"
+          :input-value="node.checked === 'checked'"
+          :indeterminate="node.checked === 'indeterminate'"
           @change="handleClickNode($event, node)"
           hide-details
         ></v-checkbox>
@@ -74,7 +75,8 @@ export default {
       this.showChildren = !this.showChildren;
     },
     handleClickNode(checked, node) {
-      this.isNodeCheck = checked;
+      const statusChecked = checked ? "checked" : "blank";
+      this.isNodeCheck = statusChecked;
 
       this.setNodeCheckRecursive(node);
       this.handleSelected(node);

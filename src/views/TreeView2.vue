@@ -1,8 +1,11 @@
 <template>
   <v-container>
     <v-row no-gutters>
-      <v-col cols="12">
-        <p>Employee {{ filterEmployeesSelected.length }}</p>
+      <v-col cols="12" sm="4">
+        <p>Organizations {{ selectedOrganizations.length }}</p>
+      </v-col>
+      <v-col cols="12" sm="4">
+        <p>Employees {{ filterEmployeesSelected.length }}</p>
       </v-col>
     </v-row>
 
@@ -136,7 +139,8 @@ export default {
 
   methods: {
     handleSelectedAllOrganization(checked) {
-      this.statusSelectedAllOrganization = checked;
+      const statusChecked = checked ? "checked" : "blank";
+      this.statusSelectedAllOrganization = statusChecked;
 
       this.organizations.forEach((organization) => {
         const node = this.setAllCheckOrganizationRecursive(organization);
@@ -156,7 +160,7 @@ export default {
     },
 
     setOrganizationCheckRecursive(node) {
-      if (node.checked) {
+      if (node.checked === "checked") {
         const index = this.selectedOrganizations.findIndex(
           (id) => id === node.id
         );
@@ -212,24 +216,33 @@ export default {
         ["checked", isChecked]
       );
 
-      if (isOrgChecked) {
-        this.organizations.forEach((org) => {
-          this.setOrganizationEmployeeRecursive(
-            org,
-            employee.nodeId,
-            isChecked
-          );
-        });
+      let statusChecked = "";
+      if (isChecked && isOrgChecked) {
+        statusChecked = "checked";
+      } else if (isChecked && !isOrgChecked) {
+        statusChecked = "indeterminate";
+      } else if (!isChecked && !isOrgChecked) {
+        statusChecked = "indeterminate";
+      } else {
+        statusChecked = "blank";
       }
+
+      this.organizations.forEach((org) => {
+        this.setOrganizationEmployeeRecursive(
+          org,
+          employee.nodeId,
+          statusChecked
+        );
+      });
     },
 
-    setOrganizationEmployeeRecursive(node, id, isChecked) {
+    setOrganizationEmployeeRecursive(node, id, statusChecked) {
       if (node.id === id) {
-        node.checked = isChecked;
+        node.checked = statusChecked;
       }
       if (node.children && node.children.length) {
         node.children.forEach((children) => {
-          this.setOrganizationEmployeeRecursive(children, id, isChecked);
+          this.setOrganizationEmployeeRecursive(children, id, statusChecked);
         });
       }
     },
