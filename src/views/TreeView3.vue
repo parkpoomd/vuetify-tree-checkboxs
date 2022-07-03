@@ -12,16 +12,14 @@
     <v-row no-gutters>
       <v-col cols="12" sm="4">
         <div>
-          <label class="d-inline-flex align-center pl-8 pb-2">
-            <input
-              type="checkbox"
-              :checked="statusSelectedAllOrganization"
-              @input="handleSelectedAllOrganization($event)"
-            />
-            <span class="ml-2">Select All</span>
-          </label>
-          <ul style="list-style: none">
-            <tree-view-item-1
+          <v-checkbox
+            label="Select All"
+            :input-value="statusSelectedAllEmployee === 'all'"
+            :indeterminate="statusSelectedAllEmployee === 'indeterminate'"
+            @change="handleSelectedAllOrganization($event)"
+          ></v-checkbox>
+          <ul class="pl-0" style="list-style: none">
+            <tree-view-item-2
               v-for="organization in organizations"
               :key="organization.id"
               :node="organization"
@@ -33,28 +31,29 @@
 
       <v-col cols="12" sm="4">
         <div>
-          <label class="d-inline-flex align-center pl-6 pb-2">
-            <input
-              type="checkbox"
-              :checked="statusSelectedAllEmployee"
-              @input="handleSelectedAllEmployee($event)"
-            />
-            <span class="ml-2">Select All</span>
-          </label>
-          <ul class="pl-6" style="list-style: none">
-            <li v-for="employee in employees" :key="employee.id">
-              <label>
-                <input
-                  type="checkbox"
-                  :checked="employee.checked"
-                  @input="handleSelectedEmployee($event, employee)"
-                />
-                <span class="ml-2">
-                  {{ employee.name }}
-                </span>
-              </label>
-            </li>
-          </ul>
+          <v-checkbox
+            label="Select All"
+            :input-value="statusSelectedAllEmployee === 'all'"
+            :indeterminate="statusSelectedAllEmployee === 'indeterminate'"
+            @change="handleSelectedAllEmployee($event)"
+          ></v-checkbox>
+          <RecycleScroller
+            style="height: 180px"
+            :items="employees"
+            :item-size="36"
+            key-field="id"
+            v-slot="{ item }"
+          >
+            <ul class="pl-0" style="list-style: none">
+              <v-checkbox
+                class="mt-2"
+                :label="item.name"
+                :input-value="item.checked"
+                @change="handleSelectedEmployee($event, employee)"
+                hide-details
+              ></v-checkbox>
+            </ul>
+          </RecycleScroller>
         </div>
       </v-col>
     </v-row>
@@ -63,12 +62,16 @@
 
 <script>
 import _ from "lodash";
-import TreeViewItem1 from "../components/TreeViewItem1.vue";
+
+import { RecycleScroller } from "vue-virtual-scroller";
+import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
+
+import TreeViewItem2 from "../components/TreeViewItem2.vue";
 
 export default {
-  name: "TreeView1",
+  name: "TreeView2",
 
-  components: { TreeViewItem1 },
+  components: { RecycleScroller, TreeViewItem2 },
 
   data() {
     return {
@@ -130,7 +133,13 @@ export default {
 
   computed: {
     statusSelectedAllEmployee() {
-      return _.every(this.employees, ["checked", true]);
+      if (_.every(this.employees, ["checked", true])) {
+        return "all";
+      } else if (_.some(this.employees, ["checked", true])) {
+        return "indeterminate";
+      } else {
+        return "blank";
+      }
     },
 
     filterEmployeesSelected() {
@@ -139,9 +148,9 @@ export default {
   },
 
   methods: {
-    handleSelectedAllOrganization(event) {
-      const isChecked = event.target.checked;
-      this.statusSelectedAllOrganization = isChecked;
+    handleSelectedAllOrganization(checked) {
+      const statusChecked = checked ? "checked" : "blank";
+      this.statusSelectedAllOrganization = statusChecked;
 
       this.organizations.forEach((organization) => {
         const node = this.setAllCheckOrganizationRecursive(organization);
@@ -161,7 +170,7 @@ export default {
     },
 
     setOrganizationCheckRecursive(node) {
-      if (node.checked) {
+      if (node.checked === "checked") {
         const index = this.selectedOrganizations.findIndex(
           (id) => id === node.id
         );
@@ -192,19 +201,17 @@ export default {
       return node;
     },
 
-    handleSelectedAllEmployee(event) {
-      const isChecked = event.target.checked;
-
+    handleSelectedAllEmployee(checked) {
       this.employees = this.employees.map((employee) => ({
         ...employee,
-        checked: isChecked,
+        checked,
       }));
 
-      this.handleSelectedAllOrganization(event);
+      this.handleSelectedAllOrganization(checked);
     },
 
     handleSelectedEmployee(event, employee) {
-      const isChecked = event.target.checked;
+      const isChecked = event;
       const { id } = employee;
 
       this.employees = this.employees.map((employee) => {
@@ -219,24 +226,33 @@ export default {
         ["checked", isChecked]
       );
 
-      if (isOrgChecked) {
-        this.organizations.forEach((org) => {
-          this.setOrganizationEmployeeRecursive(
-            org,
-            employee.nodeId,
-            isChecked
-          );
-        });
+      let statusChecked = "";
+      if (isChecked && isOrgChecked) {
+        statusChecked = "checked";
+      } else if (isChecked && !isOrgChecked) {
+        statusChecked = "indeterminate";
+      } else if (!isChecked && !isOrgChecked) {
+        statusChecked = "indeterminate";
+      } else {
+        statusChecked = "blank";
       }
+
+      this.organizations.forEach((org) => {
+        this.setOrganizationEmployeeRecursive(
+          org,
+          employee.nodeId,
+          statusChecked
+        );
+      });
     },
 
-    setOrganizationEmployeeRecursive(node, id, isChecked) {
+    setOrganizationEmployeeRecursive(node, id, statusChecked) {
       if (node.id === id) {
-        node.checked = isChecked;
+        node.checked = statusChecked;
       }
       if (node.children && node.children.length) {
         node.children.forEach((children) => {
-          this.setOrganizationEmployeeRecursive(children, id, isChecked);
+          this.setOrganizationEmployeeRecursive(children, id, statusChecked);
         });
       }
     },
