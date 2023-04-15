@@ -5,6 +5,7 @@
         <v-tab to="/">Tree View 1</v-tab>
         <v-tab to="/tree-view-2">Tree View 2</v-tab>
         <v-tab to="/tree-view-3">Tree View 3</v-tab>
+        <v-tab to="/tree-view-4">Tree View 4</v-tab>
       </v-tabs>
     </v-app-bar>
 
